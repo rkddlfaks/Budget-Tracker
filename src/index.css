@@ -50,7 +50,7 @@ body {
 }
 
 #root {
-  max-width: 768px; /* Mobile first / tablet look */
+  max-width: 1200px; /* Fully responsive */
   margin: 0 auto;
   min-height: 100vh;
   position: relative;
@@ -156,6 +156,7 @@ p {
 
 .input-field {
   width: 100%;
+  max-width: 100%;
   padding: 0.75rem 1rem;
   border-radius: 12px;
   border: 1px solid var(--border-color);
@@ -163,6 +164,13 @@ p {
   color: var(--text-primary);
   font-size: 1rem;
   transition: border-color 0.2s;
+  box-sizing: border-box;
+}
+
+input[type="date"].input-field {
+  appearance: none;
+  -webkit-appearance: none;
+  min-width: 0;
 }
 
 select.input-field {
@@ -232,7 +240,7 @@ input[type="range"] {
 /* Smart Categories Grid */
 .smart-cat-grid {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(auto-fit, minmax(80px, 1fr));
   gap: 0.5rem;
 }
 
@@ -275,7 +283,7 @@ input[type="range"] {
   bottom: 1.5rem;
   left: 1.5rem;
   right: 1.5rem;
-  max-width: calc(768px - 3rem);
+  max-width: calc(1200px - 3rem);
   margin: 0 auto;
   background-color: var(--surface-transparent);
   backdrop-filter: blur(16px);
@@ -438,6 +446,30 @@ input[type="range"] {
   justify-content: center;
   align-items: center;
   gap: 1.5rem;
+}
+
+/* Dashboard Responsive Layout */
+.dashboard-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+}
+
+@media (min-width: 768px) {
+  .dashboard-grid {
+    flex-direction: row;
+    align-items: flex-start;
+  }
+  
+  .dashboard-left {
+    flex: 1;
+    min-width: 0;
+  }
+  
+  .dashboard-right {
+    flex: 1.5;
+    min-width: 0;
+  }
 }
 
 .splash-logo {
