@@ -42,7 +42,7 @@ const Dashboard = () => {
         
         <div className="flex justify-between mt-4 p-3 rounded-xl" style={{ backgroundColor: 'rgba(255, 255, 255, 0.2)', backdropFilter: 'blur(5px)' }}>
           <div className="flex flex-col gap-1" style={{ flex: 1, minWidth: 0 }}>
-            <span className="flex items-center gap-1.5 text-xs opacity-90" style={{ color: '#fff', whiteSpace: 'nowrap' }}>
+            <span className="flex items-center text-xs opacity-90" style={{ color: '#fff', whiteSpace: 'nowrap', gap: '6px' }}>
               <PlusCircle size={14} style={{ flexShrink: 0 }} /> 
               <span style={{ overflow: 'hidden', textOverflow: 'ellipsis' }}>{t.income}</span>
             </span>
@@ -54,7 +54,7 @@ const Dashboard = () => {
           <div style={{ width: '1px', backgroundColor: 'rgba(255,255,255,0.3)', margin: '0 8px' }}></div>
           
           <div className="flex flex-col gap-1" style={{ flex: 1, minWidth: 0 }}>
-            <span className="flex items-center gap-1.5 text-xs opacity-90" style={{ color: '#fff', whiteSpace: 'nowrap' }}>
+            <span className="flex items-center text-xs opacity-90" style={{ color: '#fff', whiteSpace: 'nowrap', gap: '6px' }}>
               <MinusCircle size={14} style={{ flexShrink: 0 }} /> 
               <span style={{ overflow: 'hidden', textOverflow: 'ellipsis' }}>{t.expense}</span>
             </span>
