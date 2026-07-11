@@ -8,27 +8,7 @@ import { useBudget } from './contexts/BudgetContext';
 
 function App() {
   const [activeTab, setActiveTab] = useState('dashboard');
-  const [showSplash, setShowSplash] = useState(true);
   const { hasOnboarded } = useBudget();
-
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setShowSplash(false);
-    }, 3000); // 3 seconds
-    return () => clearTimeout(timer);
-  }, []);
-
-  if (showSplash) {
-    return (
-      <div className="splash-screen">
-        <div className="splash-content">
-          <img src="/logo_rounded.png" alt="Budget App Logo" className="splash-logo" />
-          <h1 className="splash-title">Budget Tracker</h1>
-        </div>
-        <p className="splash-copyright">copyright by Maley</p>
-      </div>
-    );
-  }
 
   if (!hasOnboarded) {
     return <Onboarding />;

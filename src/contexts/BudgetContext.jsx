@@ -100,6 +100,8 @@ export const BudgetProvider = ({ children }) => {
 
   const resetData = () => {
     setTransactions([]);
+    setHasOnboarded(false);
+    setUserName('');
   };
 
   const updateBudgetSettings = (settings) => {
