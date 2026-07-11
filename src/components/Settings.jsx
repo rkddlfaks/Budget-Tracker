@@ -1,11 +1,11 @@
 import React, { useState } from 'react';
 import { useBudget } from '../contexts/BudgetContext';
 import { useTheme } from '../contexts/ThemeContext';
-import { Moon, Sun, Save, AlertTriangle, CheckCircle, X, User } from 'lucide-react';
+import { Moon, Sun, Save, AlertTriangle, CheckCircle, X, User, Download, Upload } from 'lucide-react';
 import { translations } from '../i18n';
 
 const Settings = () => {
-  const { budgetSettings, updateBudgetSettings, resetData, userName, setUserName, language, setLanguage } = useBudget();
+  const { budgetSettings, updateBudgetSettings, resetData, userName, setUserName, language, setLanguage, currency, setCurrency, transactions, setTransactions } = useBudget();
   const { theme, toggleTheme } = useTheme();
   const t = translations[language];
   
@@ -15,6 +15,7 @@ const Settings = () => {
   
   const [tempUserName, setTempUserName] = useState(userName);
   const [tempLanguage, setTempLanguage] = useState(language);
+  const [tempCurrency, setTempCurrency] = useState(currency);
   
   const [showConfirmModal, setShowConfirmModal] = useState(false);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
@@ -34,6 +35,45 @@ const Settings = () => {
       setSuccessMessage(language === 'id' ? 'Proporsi anggaran berhasil disimpan!' : 'Budget proportions saved successfully!');
       setShowSuccessModal(true);
     }
+  };
+
+  const handleExport = () => {
+    const data = {
+      transactions,
+      budgetSettings,
+      userName,
+      currency,
+      language
+    };
+    const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(data));
+    const downloadAnchorNode = document.createElement('a');
+    downloadAnchorNode.setAttribute("href", dataStr);
+    downloadAnchorNode.setAttribute("download", "budget_tracker_backup.json");
+    document.body.appendChild(downloadAnchorNode);
+    downloadAnchorNode.click();
+    downloadAnchorNode.remove();
+  };
+
+  const handleImport = (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      try {
+        const data = JSON.parse(event.target.result);
+        if (data.transactions) setTransactions(data.transactions);
+        if (data.budgetSettings) updateBudgetSettings(data.budgetSettings);
+        if (data.userName) setUserName(data.userName);
+        if (data.currency) setCurrency(data.currency);
+        if (data.language) setLanguage(data.language);
+        
+        setSuccessMessage(language === 'id' ? 'Data berhasil diimpor!' : 'Data imported successfully!');
+        setShowSuccessModal(true);
+      } catch (err) {
+        alert(language === 'id' ? 'Gagal: File JSON tidak valid' : 'Failed: Invalid JSON file');
+      }
+    };
+    reader.readAsText(file);
   };
 
   return (
@@ -64,8 +104,21 @@ const Settings = () => {
           </select>
         </div>
         
+        <div className="input-group mb-4">
+          <label className="input-label">{t.currency}</label>
+          <select 
+            className="input-field" 
+            value={tempCurrency} 
+            onChange={(e) => setTempCurrency(e.target.value)}
+          >
+            <option value="IDR">IDR (Rp)</option>
+            <option value="USD">USD ($)</option>
+            <option value="EUR">EUR (€)</option>
+          </select>
+        </div>
+        
         {/* Save & Reset Actions for Profile */}
-        {(tempUserName !== userName || tempLanguage !== language) && (
+        {(tempUserName !== userName || tempLanguage !== language || tempCurrency !== currency) && (
           <div className="flex gap-4 mt-4">
             <button 
               className="btn btn-outline w-full"
@@ -81,6 +134,7 @@ const Settings = () => {
               onClick={() => {
                 setUserName(tempUserName);
                 setLanguage(tempLanguage);
+                setCurrency(tempCurrency);
                 setSuccessMessage(tempLanguage === 'id' ? 'Profil berhasil disimpan!' : 'Profile settings saved successfully!');
                 setShowSuccessModal(true);
               }}
@@ -173,6 +227,24 @@ const Settings = () => {
             {t.saveProps}
           </button>
         </form>
+      </div>
+
+      {/* Data Management */}
+      <div className="card mb-8">
+        <h3 className="font-bold mb-4 flex items-center gap-2"><Download size={20} /> Data Management</h3>
+        <p className="text-sm text-secondary mb-4">{t.exportDesc}</p>
+        <button 
+          className="btn btn-outline w-full flex items-center justify-center gap-2 mb-4"
+          onClick={handleExport}
+        >
+          <Download size={18} /> {t.exportData}
+        </button>
+        
+        <p className="text-sm text-secondary mb-4">{t.importDesc}</p>
+        <label className="btn btn-outline w-full flex items-center justify-center gap-2 cursor-pointer">
+          <Upload size={18} /> {t.importData}
+          <input type="file" accept=".json" style={{ display: 'none' }} onChange={handleImport} />
+        </label>
       </div>
 
       {/* Danger Zone */}

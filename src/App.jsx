@@ -2,11 +2,14 @@ import React, { useState, useEffect } from 'react';
 import Dashboard from './components/Dashboard';
 import Stats from './components/Stats';
 import Settings from './components/Settings';
+import Onboarding from './components/Onboarding';
 import { Home, PieChart, Settings as SettingsIcon } from 'lucide-react';
+import { useBudget } from './contexts/BudgetContext';
 
 function App() {
   const [activeTab, setActiveTab] = useState('dashboard');
   const [showSplash, setShowSplash] = useState(true);
+  const { hasOnboarded } = useBudget();
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -25,6 +28,10 @@ function App() {
         <p className="splash-copyright">copyright by Maley</p>
       </div>
     );
+  }
+
+  if (!hasOnboarded) {
+    return <Onboarding />;
   }
 
   return (

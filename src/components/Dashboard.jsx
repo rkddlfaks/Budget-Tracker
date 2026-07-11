@@ -1,12 +1,14 @@
 import React, { useState } from 'react';
 import { useBudget } from '../contexts/BudgetContext';
-import { PlusCircle, MinusCircle } from 'lucide-react';
+import { PlusCircle, MinusCircle, Search } from 'lucide-react';
 import AddTransactionModal from './AddTransactionModal';
+import confetti from 'canvas-confetti';
 import { translations } from '../i18n';
 
 const Dashboard = () => {
-  const { transactions, budgetSettings, userName, language } = useBudget();
-  const [modalType, setModalType] = useState(null); // 'income' or 'expense'
+  const { transactions, budgetSettings, userName, language, currency } = useBudget();
+  const [modalType, setModalType] = useState(null);
+  const [searchQuery, setSearchQuery] = useState('');
   const t = translations[language];
 
   // Calculate totals
@@ -28,8 +30,15 @@ const Dashboard = () => {
   const isOverBudget = totalExpense > maxExpensesAllowed;
 
   const formatCurrency = (amount) => {
-    return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR' }).format(amount);
+    return new Intl.NumberFormat(language === 'id' ? 'id-ID' : 'en-US', { 
+      style: 'currency', 
+      currency: currency || 'IDR' 
+    }).format(amount);
   };
+
+  const filteredTransactions = transactions.filter(tr => 
+    tr.title.toLowerCase().includes(searchQuery.toLowerCase())
+  );
 
   return (
     <div className="pb-8">
@@ -67,7 +76,22 @@ const Dashboard = () => {
 
       {/* Budget Progress */}
       <div className="card mb-8">
-        <h3 className="font-bold mb-4">{t.budgetStatus}</h3>
+        <div className="flex justify-between items-center mb-4">
+          <h3 className="font-bold">{t.budgetStatus}</h3>
+          <button 
+            onClick={() => {
+              if (!isOverBudget) {
+                confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 } });
+              } else {
+                alert(language === 'id' ? 'Oops! Pengeluaranmu overbudget bulan ini.' : 'Oops! You are over budget this month.');
+              }
+            }}
+            className="btn btn-outline"
+            style={{ padding: '0.25rem 0.75rem', fontSize: '0.75rem', minHeight: 'auto' }}
+          >
+            {language === 'id' ? 'Rayakan 🎉' : 'Celebrate 🎉'}
+          </button>
+        </div>
         <p className="text-sm text-secondary mb-4">
           {isOverBudget 
             ? t.overbudget
@@ -108,10 +132,23 @@ const Dashboard = () => {
         </button>
       </div>
 
-      {/* Recent Transactions */}
+      {/* Transaction History & Search */}
       <div className="card mb-8">
-        <h3 className="font-bold mb-4">{t.recentTrans}</h3>
-        {transactions.slice(0, 3).map(t_item => (
+        <h3 className="font-bold mb-4">{t.history}</h3>
+        
+        <div className="input-group mb-4" style={{ position: 'relative' }}>
+          <input 
+            type="text"
+            placeholder={t.search}
+            className="input-field"
+            style={{ paddingLeft: '2.5rem' }}
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+          />
+          <Search size={18} style={{ position: 'absolute', left: '1rem', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-secondary)' }} />
+        </div>
+
+        {filteredTransactions.slice(0, 10).map(t_item => (
           <div key={t_item.id} className="flex justify-between items-center mb-3 pb-3" style={{ borderBottom: '1px solid var(--border-color)' }}>
             <div>
               <p className="font-bold">{t_item.title}</p>
@@ -122,7 +159,11 @@ const Dashboard = () => {
             </p>
           </div>
         ))}
-        {transactions.length === 0 && <p className="text-sm text-center text-secondary">No transactions yet.</p>}
+        {filteredTransactions.length === 0 && (
+          <p className="text-sm text-center text-secondary py-4">
+            {searchQuery ? 'No matching transactions.' : 'No transactions yet.'}
+          </p>
+        )}
       </div>
 
       {modalType && (

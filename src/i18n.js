@@ -45,7 +45,22 @@ export const translations = {
     date: 'Date',
     voiceInput: 'Voice Input',
     voiceListening: 'Listening...',
-    voiceDesc: 'Try saying: "Salary 5000" or "Food 150"'
+    voiceDesc: 'Try saying: "Salary 5000" or "Food 150"',
+    // New additions
+    currency: 'Currency',
+    exportData: 'Export Data',
+    importData: 'Import Data',
+    exportDesc: 'Download your data as a JSON file.',
+    importDesc: 'Restore your data from a JSON file.',
+    recurring: 'Recurring Monthly',
+    onboardingWelcome: 'Welcome to Budget Tracker!',
+    onboardingDesc: 'Let\'s get started by setting up your basic profile.',
+    start: 'Get Started',
+    finish: 'Finish',
+    search: 'Search transactions...',
+    smartCategories: 'Smart Categories',
+    customNote: 'Custom Note (Optional)',
+    history: 'Transaction History'
   },
   id: {
     hello: 'Halo',
@@ -93,6 +108,21 @@ export const translations = {
     date: 'Tanggal',
     voiceInput: 'Input Suara',
     voiceListening: 'Mendengarkan...',
-    voiceDesc: 'Coba ucapkan: "Gaji 5000" atau "Makan 150"'
+    voiceDesc: 'Coba ucapkan: "Gaji 5000" atau "Makan 150"',
+    // New additions
+    currency: 'Mata Uang',
+    exportData: 'Ekspor Data',
+    importData: 'Impor Data',
+    exportDesc: 'Unduh data Anda sebagai file JSON.',
+    importDesc: 'Pulihkan data Anda dari file JSON.',
+    recurring: 'Ulangi Tiap Bulan',
+    onboardingWelcome: 'Selamat Datang di Budget Tracker!',
+    onboardingDesc: 'Mari mulai dengan mengatur profil dasar Anda.',
+    start: 'Mulai',
+    finish: 'Selesai',
+    search: 'Cari transaksi...',
+    smartCategories: 'Kategori Cerdas',
+    customNote: 'Catatan Khusus (Opsional)',
+    history: 'Riwayat Transaksi'
   }
 };

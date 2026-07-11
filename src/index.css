@@ -229,6 +229,46 @@ input[type="range"] {
 .bg-income { background-color: var(--accent-income); }
 .bg-expense { background-color: var(--accent-expense); }
 
+/* Smart Categories Grid */
+.smart-cat-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.5rem;
+}
+
+.smart-cat-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 0.75rem 0.5rem;
+  border-radius: 12px;
+  border: 1px solid var(--border-color);
+  background-color: var(--surface-color);
+  color: var(--text-secondary);
+  font-size: 0.75rem;
+  gap: 0.5rem;
+  transition: all 0.2s;
+  cursor: pointer;
+}
+
+.smart-cat-btn:hover {
+  border-color: var(--primary-color);
+}
+
+.smart-cat-btn.active {
+  background-color: var(--primary-color);
+  border-color: var(--primary-color);
+}
+
+[data-theme='light'] .smart-cat-btn.active {
+  color: #FFFFFF;
+}
+
+[data-theme='dark'] .smart-cat-btn.active {
+  color: #0F172A;
+}
+
 /* Bottom Nav - Floating Sleek Glassmorphism */
 .bottom-nav {
   position: fixed;
@@ -318,6 +358,8 @@ input[type="range"] {
   background-color: var(--surface-color);
   width: 100%;
   max-width: 500px;
+  max-height: 90vh;
+  overflow-y: auto;
   border-radius: 24px 24px 0 0; /* Bottom sheet */
   padding: 1.5rem;
   box-shadow: var(--shadow-lg);

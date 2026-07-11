@@ -1,15 +1,36 @@
 import React, { useState, useEffect } from 'react';
 import { useBudget } from '../contexts/BudgetContext';
 import { translations } from '../i18n';
-import { Mic, X } from 'lucide-react';
+import { Mic, X, Coffee, ShoppingBag, Zap, Car, Film, Briefcase, TrendingUp, HelpCircle, Repeat } from 'lucide-react';
+import { addMonths } from 'date-fns';
+
+const EXPENSE_CATEGORIES = [
+  { id: 'Food', icon: Coffee, label: 'Food & Drink' },
+  { id: 'Shopping', icon: ShoppingBag, label: 'Shopping' },
+  { id: 'Bills', icon: Zap, label: 'Bills' },
+  { id: 'Transport', icon: Car, label: 'Transport' },
+  { id: 'Entertainment', icon: Film, label: 'Entertainment' },
+  { id: 'Other', icon: HelpCircle, label: 'Other' }
+];
+
+const INCOME_CATEGORIES = [
+  { id: 'Salary', icon: Briefcase, label: 'Salary' },
+  { id: 'Investment', icon: TrendingUp, label: 'Investment' },
+  { id: 'Other', icon: HelpCircle, label: 'Other' }
+];
 
 const AddTransactionModal = ({ type, onClose }) => {
   const { addTransaction, language } = useBudget();
   const t = translations[language];
   const [amount, setAmount] = useState('');
-  const [title, setTitle] = useState('');
+  
+  const categoriesList = type === 'expense' ? EXPENSE_CATEGORIES : INCOME_CATEGORIES;
+  const [selectedSmartCat, setSelectedSmartCat] = useState(categoriesList[0].id);
+  const [note, setNote] = useState('');
+  
   const [category, setCategory] = useState('needs');
   const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
+  const [isRecurring, setIsRecurring] = useState(false);
   const [isRecording, setIsRecording] = useState(false);
   const [recognition, setRecognition] = useState(null);
 
@@ -56,7 +77,7 @@ const AddTransactionModal = ({ type, onClose }) => {
     });
 
     if (parsedAmount) setAmount(parsedAmount);
-    if (parsedTitle.length > 0) setTitle(parsedTitle.join(' '));
+    if (parsedTitle.length > 0) setNote(parsedTitle.join(' '));
   };
 
   const toggleRecording = () => {
@@ -70,14 +91,18 @@ const AddTransactionModal = ({ type, onClose }) => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    if (!amount || !title) return;
+    if (!amount) return;
+    
+    const finalTitle = note ? `${selectedSmartCat} - ${note}` : selectedSmartCat;
     
     addTransaction({
       type,
       amount: Number(amount),
-      title,
+      title: finalTitle,
       category: type === 'expense' ? category : 'income',
-      date
+      date,
+      isRecurring,
+      nextRecurringDate: isRecurring ? addMonths(new Date(date), 1).toISOString() : null
     });
     onClose();
   };
@@ -85,8 +110,8 @@ const AddTransactionModal = ({ type, onClose }) => {
   return (
     <div className="modal-overlay">
       <div className="modal-content">
-        <div className="flex justify-between items-center mb-4">
-          <h2 className="text-xl font-bold mb-6">
+        <div className="flex justify-between items-center mb-6">
+          <h2 className="text-xl font-bold">
             {type === 'income' ? t.addIncome : t.addExpense}
           </h2>
           <button onClick={onClose} className="btn-icon" style={{ backgroundColor: 'transparent', border: 'none', color: 'var(--text-secondary)' }}>
@@ -128,14 +153,30 @@ const AddTransactionModal = ({ type, onClose }) => {
           </div>
 
           <div className="input-group">
-            <label className="input-label">{t.title}</label>
+            <label className="input-label">{t.smartCategories}</label>
+            <div className="smart-cat-grid mb-4">
+              {categoriesList.map(cat => (
+                <button
+                  key={cat.id}
+                  type="button"
+                  onClick={() => setSelectedSmartCat(cat.id)}
+                  className={`smart-cat-btn ${selectedSmartCat === cat.id ? 'active' : ''}`}
+                >
+                  <cat.icon size={20} />
+                  <span>{cat.label}</span>
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <div className="input-group">
+            <label className="input-label">{t.customNote}</label>
             <input 
               type="text" 
               className="input-field"
-              required
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
-              placeholder={type === 'income' ? "e.g. Salary" : "e.g. Lunch"}
+              value={note}
+              onChange={(e) => setNote(e.target.value)}
+              placeholder="e.g. Lunch with client"
             />
           </div>
 
@@ -164,7 +205,20 @@ const AddTransactionModal = ({ type, onClose }) => {
             />
           </div>
 
-          <button type="submit" className="btn btn-primary w-full mt-4">
+          <div className="mb-6">
+            <label className="flex items-center gap-2 cursor-pointer p-3 rounded-xl border border-gray-200 bg-surface-color hover:bg-gray-50 transition-colors">
+              <input 
+                type="checkbox" 
+                checked={isRecurring}
+                onChange={(e) => setIsRecurring(e.target.checked)}
+                className="w-5 h-5 accent-primary-color"
+              />
+              <Repeat size={18} className={isRecurring ? 'text-primary-color' : 'text-secondary'} />
+              <span className={`text-sm font-medium ${isRecurring ? 'text-primary-color' : ''}`}>{t.recurring}</span>
+            </label>
+          </div>
+
+          <button type="submit" className="btn btn-primary w-full">
             {t.save}
           </button>
         </form>
