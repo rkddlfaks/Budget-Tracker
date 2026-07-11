@@ -90,43 +90,15 @@ const AddTransactionModal = ({ type, onClose }) => {
   };
 
   const handleAmountChange = (e) => {
-    const isID = language === 'id';
-    const thousandSep = isID ? '.' : ',';
-    const decimalSep = isID ? ',' : '.';
-    
-    let val = e.target.value;
-    
-    // Remove all thousands separators
-    val = val.split(thousandSep).join('');
-    
-    // Replace the local decimal separator with a standard dot
-    val = val.replace(decimalSep, '.');
-    
-    // Remove any remaining non-digit/dot characters
-    val = val.replace(/[^0-9.]/g, '');
-    
-    // Ensure only one dot
-    const parts = val.split('.');
-    if (parts.length > 2) {
-      val = parts[0] + '.' + parts.slice(1).join('');
-    }
-    
-    setAmount(val);
+    // Hanya izinkan angka, buang semua karakter lain (termasuk titik dan koma)
+    const rawValue = e.target.value.replace(/\D/g, '');
+    setAmount(rawValue);
   };
 
   const formatDisplayAmount = (val) => {
     if (!val) return '';
-    const isID = language === 'id';
-    const thousandSep = isID ? '.' : ',';
-    const decimalSep = isID ? ',' : '.';
-    
-    const parts = val.split('.');
-    // Add thousand separators to integer part
-    const integerPart = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, thousandSep);
-    // Append decimal part if it exists
-    const decimalPart = parts.length > 1 ? decimalSep + parts[1] : '';
-    
-    return integerPart + decimalPart;
+    // Format murni dengan pemisah ribuan titik (.)
+    return val.toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.');
   };
 
   const handleSubmit = (e) => {
