@@ -40,18 +40,27 @@ const Dashboard = () => {
         <p className="text-sm opacity-90 mb-1" style={{ color: '#fff' }}>{t.totalBalance}</p>
         <h2 className="font-bold mb-6" style={{ fontSize: 'clamp(1.2rem, 7vw, 2.5rem)', color: '#fff', lineHeight: '1.2', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{formatCurrency(balance)}</h2>
         
-        <div className="flex justify-between mt-4 p-3 rounded-xl" style={{ backgroundColor: 'rgba(255, 255, 255, 0.2)', backdropFilter: 'blur(5px)', gap: '0.5rem' }}>
-          <div className="flex flex-col" style={{ width: '50%', overflow: 'hidden' }}>
-            <span className="flex items-center gap-2 text-sm opacity-90" style={{ color: '#fff', whiteSpace: 'nowrap' }}>
-              <PlusCircle size={16} style={{ flexShrink: 0 }} /> <span style={{ overflow: 'hidden', textOverflow: 'ellipsis' }}>{t.income}</span>
+        <div className="flex justify-between mt-4 p-3 rounded-xl" style={{ backgroundColor: 'rgba(255, 255, 255, 0.2)', backdropFilter: 'blur(5px)' }}>
+          <div className="flex flex-col gap-1" style={{ flex: 1, minWidth: 0 }}>
+            <span className="flex items-center gap-1.5 text-xs opacity-90" style={{ color: '#fff', whiteSpace: 'nowrap' }}>
+              <PlusCircle size={14} style={{ flexShrink: 0 }} /> 
+              <span style={{ overflow: 'hidden', textOverflow: 'ellipsis' }}>{t.income}</span>
             </span>
-            <span className="font-bold" style={{ color: '#fff', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{formatCurrency(totalIncome)}</span>
+            <span className="font-bold text-sm sm:text-base" style={{ color: '#fff', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+              {formatCurrency(totalIncome)}
+            </span>
           </div>
-          <div className="flex flex-col text-right items-end" style={{ width: '50%', overflow: 'hidden' }}>
-            <span className="flex items-center gap-2 text-sm justify-end opacity-90" style={{ color: '#fff', whiteSpace: 'nowrap' }}>
-              <MinusCircle size={16} style={{ flexShrink: 0 }} /> <span style={{ overflow: 'hidden', textOverflow: 'ellipsis' }}>{t.expense}</span>
+          
+          <div style={{ width: '1px', backgroundColor: 'rgba(255,255,255,0.3)', margin: '0 8px' }}></div>
+          
+          <div className="flex flex-col gap-1" style={{ flex: 1, minWidth: 0 }}>
+            <span className="flex items-center gap-1.5 text-xs opacity-90" style={{ color: '#fff', whiteSpace: 'nowrap' }}>
+              <MinusCircle size={14} style={{ flexShrink: 0 }} /> 
+              <span style={{ overflow: 'hidden', textOverflow: 'ellipsis' }}>{t.expense}</span>
             </span>
-            <span className="font-bold" style={{ color: '#fff', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{formatCurrency(totalExpense)}</span>
+            <span className="font-bold text-sm sm:text-base" style={{ color: '#fff', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+              {formatCurrency(totalExpense)}
+            </span>
           </div>
         </div>
       </div>
