@@ -29,11 +29,22 @@ export default defineConfig({
     chunkSizeWarningLimit: 1000,
     rollupOptions: {
       output: {
-        manualChunks: {
-          'vendor-react': ['react', 'react-dom'],
-          'vendor-charts': ['recharts'],
-          'vendor-utils': ['date-fns', 'lucide-react'],
-          'vendor-pdf': ['jspdf', 'jspdf-autotable']
+        manualChunks(id) {
+          if (id.includes('node_modules')) {
+            if (id.includes('react') || id.includes('react-dom')) {
+              return 'vendor-react';
+            }
+            if (id.includes('recharts')) {
+              return 'vendor-charts';
+            }
+            if (id.includes('jspdf')) {
+              return 'vendor-pdf';
+            }
+            if (id.includes('date-fns') || id.includes('lucide-react')) {
+              return 'vendor-utils';
+            }
+            return 'vendor';
+          }
         }
       }
     }
