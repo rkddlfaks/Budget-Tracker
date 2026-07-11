@@ -17,6 +17,12 @@ const Stats = () => {
   const [yearDate, setYearDate] = useState(format(new Date(), 'yyyy'));
   const t = translations[language];
 
+  const handleMonthChange = (type, value) => {
+    const [year, month] = monthDate.split('-');
+    if (type === 'year') setMonthDate(`${value}-${month}`);
+    if (type === 'month') setMonthDate(`${year}-${value}`);
+  };
+
   const filteredTransactions = transactions.filter(t => {
     const date = parseISO(t.date);
     if (period === 'daily') return isSameDay(date, parseISO(dailyDate));
@@ -212,7 +218,7 @@ const Stats = () => {
             <input 
               type="date"
               className="input-field"
-              style={{ width: '100%', padding: '0.6rem 1rem', borderRadius: '12px', border: 'none', backgroundColor: 'var(--bg-color)' }}
+              style={{ flex: 1, minWidth: 0, padding: '0.6rem 1rem', borderRadius: '12px', border: 'none', backgroundColor: 'var(--bg-color)' }}
               value={weekStart}
               onChange={(e) => setWeekStart(e.target.value)}
             />
@@ -220,7 +226,7 @@ const Stats = () => {
             <input 
               type="date"
               className="input-field"
-              style={{ width: '100%', padding: '0.6rem 1rem', borderRadius: '12px', border: 'none', backgroundColor: 'var(--bg-color)' }}
+              style={{ flex: 1, minWidth: 0, padding: '0.6rem 1rem', borderRadius: '12px', border: 'none', backgroundColor: 'var(--bg-color)' }}
               value={weekEnd}
               onChange={(e) => setWeekEnd(e.target.value)}
             />
@@ -228,25 +234,42 @@ const Stats = () => {
         )}
 
         {period === 'monthly' && (
-          <input 
-            type="month"
-            className="input-field"
-            style={{ width: '100%', padding: '0.6rem 1rem', borderRadius: '12px', border: 'none', backgroundColor: 'var(--bg-color)' }}
-            value={monthDate}
-            onChange={(e) => setMonthDate(e.target.value)}
-          />
+          <div className="flex gap-2">
+            <select 
+              className="input-field" 
+              style={{ flex: 1, padding: '0.6rem 1rem', borderRadius: '12px', border: 'none', backgroundColor: 'var(--bg-color)' }}
+              value={monthDate.split('-')[1]} 
+              onChange={(e) => handleMonthChange('month', e.target.value)}
+            >
+              {Array.from({length: 12}).map((_, i) => {
+                const m = (i + 1).toString().padStart(2, '0');
+                return <option key={m} value={m}>{new Date(2000, i, 1).toLocaleString(language === 'id' ? 'id-ID' : 'en-US', { month: 'long' })}</option>
+              })}
+            </select>
+            <select 
+              className="input-field" 
+              style={{ flex: 1, padding: '0.6rem 1rem', borderRadius: '12px', border: 'none', backgroundColor: 'var(--bg-color)' }}
+              value={monthDate.split('-')[0]} 
+              onChange={(e) => handleMonthChange('year', e.target.value)}
+            >
+              {Array.from({length: 15}).map((_, i) => (
+                <option key={2020 + i} value={2020 + i}>{2020 + i}</option>
+              ))}
+            </select>
+          </div>
         )}
 
         {period === 'yearly' && (
-          <input 
-            type="number"
-            min="2000"
-            max="2100"
-            className="input-field"
+          <select 
+            className="input-field" 
             style={{ width: '100%', padding: '0.6rem 1rem', borderRadius: '12px', border: 'none', backgroundColor: 'var(--bg-color)' }}
-            value={yearDate}
+            value={yearDate} 
             onChange={(e) => setYearDate(e.target.value)}
-          />
+          >
+            {Array.from({length: 15}).map((_, i) => (
+              <option key={2020 + i} value={2020 + i}>{2020 + i}</option>
+            ))}
+          </select>
         )}
       </div>
 
