@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useBudget } from '../contexts/BudgetContext';
 import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer, BarChart, Bar, XAxis, YAxis, CartesianGrid } from 'recharts';
-import { format, parseISO, isSameDay, isSameWeek, isSameMonth, isSameYear } from 'date-fns';
+import { format, parseISO, isSameDay, isSameMonth, isSameYear, isWithinInterval, startOfDay, endOfDay } from 'date-fns';
 import { Download, FileText } from 'lucide-react';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
@@ -10,18 +10,27 @@ import { translations } from '../i18n';
 const Stats = () => {
   const { transactions, budgetSettings, language } = useBudget();
   const [period, setPeriod] = useState('monthly');
-  const [selectedDateStr, setSelectedDateStr] = useState(format(new Date(), 'yyyy-MM-dd'));
+  const [dailyDate, setDailyDate] = useState(format(new Date(), 'yyyy-MM-dd'));
+  const [weekStart, setWeekStart] = useState(format(new Date(), 'yyyy-MM-dd'));
+  const [weekEnd, setWeekEnd] = useState(format(new Date(), 'yyyy-MM-dd'));
+  const [monthDate, setMonthDate] = useState(format(new Date(), 'yyyy-MM'));
+  const [yearDate, setYearDate] = useState(format(new Date(), 'yyyy'));
   const t = translations[language];
 
-  // Filter transactions by period (relative to selected date)
-  const referenceDate = selectedDateStr ? parseISO(selectedDateStr) : new Date();
-  
   const filteredTransactions = transactions.filter(t => {
     const date = parseISO(t.date);
-    if (period === 'daily') return isSameDay(date, referenceDate);
-    if (period === 'weekly') return isSameWeek(date, referenceDate);
-    if (period === 'monthly') return isSameMonth(date, referenceDate);
-    if (period === 'yearly') return isSameYear(date, referenceDate);
+    if (period === 'daily') return isSameDay(date, parseISO(dailyDate));
+    if (period === 'weekly') {
+      try {
+        const start = startOfDay(parseISO(weekStart));
+        const end = endOfDay(parseISO(weekEnd));
+        return isWithinInterval(date, { start, end });
+      } catch (e) {
+        return true;
+      }
+    }
+    if (period === 'monthly') return isSameMonth(date, parseISO(`${monthDate}-01`));
+    if (period === 'yearly') return isSameYear(date, parseISO(`${yearDate}-01-01`));
     return true;
   });
 
@@ -185,15 +194,60 @@ const Stats = () => {
       </div>
 
       {/* Date Picker */}
-      <div className="flex items-center justify-between mb-8 p-3 shadow-sm" style={{ backgroundColor: 'var(--surface-color)', borderRadius: '16px', border: '1px solid var(--border-color)' }}>
+      <div className="flex flex-col gap-3 mb-8 p-4 shadow-sm" style={{ backgroundColor: 'var(--surface-color)', borderRadius: '16px', border: '1px solid var(--border-color)' }}>
         <span className="text-sm font-medium">{t.selectDate}</span>
-        <input 
-          type="date"
-          className="input-field"
-          style={{ width: 'auto', padding: '0.4rem 0.8rem', borderRadius: '12px', border: 'none', backgroundColor: 'var(--bg-color)', fontSize: '0.875rem' }}
-          value={selectedDateStr}
-          onChange={(e) => setSelectedDateStr(e.target.value)}
-        />
+        
+        {period === 'daily' && (
+          <input 
+            type="date"
+            className="input-field"
+            style={{ width: '100%', padding: '0.6rem 1rem', borderRadius: '12px', border: 'none', backgroundColor: 'var(--bg-color)' }}
+            value={dailyDate}
+            onChange={(e) => setDailyDate(e.target.value)}
+          />
+        )}
+
+        {period === 'weekly' && (
+          <div className="flex items-center gap-2">
+            <input 
+              type="date"
+              className="input-field"
+              style={{ width: '100%', padding: '0.6rem 1rem', borderRadius: '12px', border: 'none', backgroundColor: 'var(--bg-color)' }}
+              value={weekStart}
+              onChange={(e) => setWeekStart(e.target.value)}
+            />
+            <span className="text-secondary">-</span>
+            <input 
+              type="date"
+              className="input-field"
+              style={{ width: '100%', padding: '0.6rem 1rem', borderRadius: '12px', border: 'none', backgroundColor: 'var(--bg-color)' }}
+              value={weekEnd}
+              onChange={(e) => setWeekEnd(e.target.value)}
+            />
+          </div>
+        )}
+
+        {period === 'monthly' && (
+          <input 
+            type="month"
+            className="input-field"
+            style={{ width: '100%', padding: '0.6rem 1rem', borderRadius: '12px', border: 'none', backgroundColor: 'var(--bg-color)' }}
+            value={monthDate}
+            onChange={(e) => setMonthDate(e.target.value)}
+          />
+        )}
+
+        {period === 'yearly' && (
+          <input 
+            type="number"
+            min="2000"
+            max="2100"
+            className="input-field"
+            style={{ width: '100%', padding: '0.6rem 1rem', borderRadius: '12px', border: 'none', backgroundColor: 'var(--bg-color)' }}
+            value={yearDate}
+            onChange={(e) => setYearDate(e.target.value)}
+          />
+        )}
       </div>
 
       {/* Summary Cards */}
