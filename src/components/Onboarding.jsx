@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useBudget } from '../contexts/BudgetContext';
 import { useTheme } from '../contexts/ThemeContext';
-import { ArrowRight, Globe, Coins, Sparkles, Check, ChevronRight, Sun, Moon } from 'lucide-react';
+import { ArrowRight, Globe, Coins, Sparkles, Check, ChevronRight, ChevronLeft, Sun, Moon } from 'lucide-react';
 
 const Onboarding = () => {
   const { userName, setUserName, currency, setCurrency, setHasOnboarded, language, setLanguage } = useBudget();
@@ -15,6 +15,16 @@ const Onboarding = () => {
       setStep(nextStep);
       setIsTransitioning(false);
     }, 300); // 300ms for exit animation
+  };
+
+  const handleBack = () => {
+    if (step > 1) {
+      setIsTransitioning(true);
+      setTimeout(() => {
+        setStep(step - 1);
+        setIsTransitioning(false);
+      }, 300);
+    }
   };
 
   const handleFinish = () => {
@@ -173,6 +183,32 @@ const Onboarding = () => {
       </button>
 
       <div style={cardStyle}>
+        {step > 1 && (
+          <button 
+            onClick={handleBack}
+            style={{
+              position: 'absolute',
+              top: '1.5rem',
+              left: '1.5rem',
+              width: '40px',
+              height: '40px',
+              borderRadius: '50%',
+              backgroundColor: 'transparent',
+              border: 'none',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              cursor: 'pointer',
+              color: 'var(--text-secondary)',
+              transition: 'all 0.2s',
+              zIndex: 20
+            }}
+            onMouseOver={(e) => { e.currentTarget.style.backgroundColor = 'var(--border-color)'; e.currentTarget.style.color = 'var(--text-primary)'; }}
+            onMouseOut={(e) => { e.currentTarget.style.backgroundColor = 'transparent'; e.currentTarget.style.color = 'var(--text-secondary)'; }}
+          >
+            <ChevronLeft size={24} />
+          </button>
+        )}
         <div className="w-full flex flex-col items-center">
           {renderProgressDots()}
 
