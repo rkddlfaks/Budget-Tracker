@@ -10,17 +10,18 @@ import { translations } from '../i18n';
 const Stats = () => {
   const { transactions, budgetSettings, language } = useBudget();
   const [period, setPeriod] = useState('monthly');
+  const [selectedDateStr, setSelectedDateStr] = useState(format(new Date(), 'yyyy-MM-dd'));
   const t = translations[language];
 
-  // Filter transactions by period (relative to today)
-  const now = new Date();
+  // Filter transactions by period (relative to selected date)
+  const referenceDate = selectedDateStr ? parseISO(selectedDateStr) : new Date();
   
   const filteredTransactions = transactions.filter(t => {
     const date = parseISO(t.date);
-    if (period === 'daily') return isSameDay(date, now);
-    if (period === 'weekly') return isSameWeek(date, now);
-    if (period === 'monthly') return isSameMonth(date, now);
-    if (period === 'yearly') return isSameYear(date, now);
+    if (period === 'daily') return isSameDay(date, referenceDate);
+    if (period === 'weekly') return isSameWeek(date, referenceDate);
+    if (period === 'monthly') return isSameMonth(date, referenceDate);
+    if (period === 'yearly') return isSameYear(date, referenceDate);
     return true;
   });
 
@@ -160,7 +161,7 @@ const Stats = () => {
       </div>
       
       {/* Period Selector */}
-      <div className="flex gap-1 mb-8 p-1 shadow-sm" style={{ backgroundColor: 'var(--surface-color)', borderRadius: '9999px', border: '1px solid var(--border-color)' }}>
+      <div className="flex gap-1 mb-4 p-1 shadow-sm" style={{ backgroundColor: 'var(--surface-color)', borderRadius: '9999px', border: '1px solid var(--border-color)' }}>
         {['daily', 'weekly', 'monthly', 'yearly'].map(p => (
           <button 
             key={p}
@@ -181,6 +182,18 @@ const Stats = () => {
             {t[p]}
           </button>
         ))}
+      </div>
+
+      {/* Date Picker */}
+      <div className="flex items-center justify-between mb-8 p-3 shadow-sm" style={{ backgroundColor: 'var(--surface-color)', borderRadius: '16px', border: '1px solid var(--border-color)' }}>
+        <span className="text-sm font-medium">{t.selectDate}</span>
+        <input 
+          type="date"
+          className="input-field"
+          style={{ width: 'auto', padding: '0.4rem 0.8rem', borderRadius: '12px', border: 'none', backgroundColor: 'var(--bg-color)', fontSize: '0.875rem' }}
+          value={selectedDateStr}
+          onChange={(e) => setSelectedDateStr(e.target.value)}
+        />
       </div>
 
       {/* Summary Cards */}
