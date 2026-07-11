@@ -206,10 +206,13 @@ const Stats = () => {
         {period === 'daily' && (
           <input 
             type="date"
-            className="input-field"
+            className="input-field cursor-pointer"
             style={{ width: '100%', padding: '0.6rem 1rem', borderRadius: '12px', border: 'none', backgroundColor: 'var(--bg-color)' }}
             value={dailyDate}
             onChange={(e) => setDailyDate(e.target.value)}
+            onClick={(e) => {
+              try { e.target.showPicker(); } catch (err) {}
+            }}
           />
         )}
 
@@ -217,18 +220,24 @@ const Stats = () => {
           <div className="flex items-center gap-2">
             <input 
               type="date"
-              className="input-field"
+              className="input-field cursor-pointer"
               style={{ flex: 1, minWidth: 0, padding: '0.6rem 1rem', borderRadius: '12px', border: 'none', backgroundColor: 'var(--bg-color)' }}
               value={weekStart}
               onChange={(e) => setWeekStart(e.target.value)}
+              onClick={(e) => {
+                try { e.target.showPicker(); } catch (err) {}
+              }}
             />
             <span className="text-secondary">-</span>
             <input 
               type="date"
-              className="input-field"
+              className="input-field cursor-pointer"
               style={{ flex: 1, minWidth: 0, padding: '0.6rem 1rem', borderRadius: '12px', border: 'none', backgroundColor: 'var(--bg-color)' }}
               value={weekEnd}
               onChange={(e) => setWeekEnd(e.target.value)}
+              onClick={(e) => {
+                try { e.target.showPicker(); } catch (err) {}
+              }}
             />
           </div>
         )}
