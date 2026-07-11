@@ -1,9 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { useBudget } from '../contexts/BudgetContext';
-import { ArrowRight, Globe, Coins, Sparkles, Check, ChevronRight } from 'lucide-react';
+import { useTheme } from '../contexts/ThemeContext';
+import { ArrowRight, Globe, Coins, Sparkles, Check, ChevronRight, Sun, Moon } from 'lucide-react';
 
 const Onboarding = () => {
   const { userName, setUserName, currency, setCurrency, setHasOnboarded, language, setLanguage } = useBudget();
+  const { theme, toggleTheme } = useTheme();
   const [step, setStep] = useState(1);
   const [isTransitioning, setIsTransitioning] = useState(false);
 
@@ -119,6 +121,57 @@ const Onboarding = () => {
       <div style={blob1}></div>
       <div style={blob2}></div>
       
+      {/* Theme Toggle Button */}
+      <button 
+        onClick={toggleTheme}
+        style={{
+          position: 'absolute',
+          top: '1.5rem',
+          right: '1.5rem',
+          width: '48px',
+          height: '48px',
+          borderRadius: '50%',
+          backgroundColor: 'var(--surface-transparent)',
+          backdropFilter: 'blur(10px)',
+          WebkitBackdropFilter: 'blur(10px)',
+          border: '1px solid rgba(255, 255, 255, 0.2)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          cursor: 'pointer',
+          zIndex: 50,
+          boxShadow: 'var(--shadow-md)',
+          color: 'var(--text-primary)',
+          overflow: 'hidden'
+        }}
+      >
+        <div style={{
+          position: 'relative',
+          width: '24px',
+          height: '24px',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+        }}>
+          <div style={{
+            position: 'absolute',
+            transition: 'all 0.5s cubic-bezier(0.4, 0, 0.2, 1)',
+            transform: theme === 'light' ? 'scale(1) rotate(0deg)' : 'scale(0) rotate(90deg)',
+            opacity: theme === 'light' ? 1 : 0
+          }}>
+            <Sun size={24} />
+          </div>
+          <div style={{
+            position: 'absolute',
+            transition: 'all 0.5s cubic-bezier(0.4, 0, 0.2, 1)',
+            transform: theme === 'dark' ? 'scale(1) rotate(0deg)' : 'scale(0) rotate(-90deg)',
+            opacity: theme === 'dark' ? 1 : 0
+          }}>
+            <Moon size={24} />
+          </div>
+        </div>
+      </button>
+
       <div style={cardStyle}>
         <div className="w-full flex flex-col items-center">
           {renderProgressDots()}
