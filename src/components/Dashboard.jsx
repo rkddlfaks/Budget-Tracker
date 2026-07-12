@@ -1,14 +1,15 @@
 import React, { useState } from 'react';
 import { useBudget } from '../contexts/BudgetContext';
-import { PlusCircle, MinusCircle, Search } from 'lucide-react';
+import { PlusCircle, MinusCircle, Search, Trash2, X } from 'lucide-react';
 import AddTransactionModal from './AddTransactionModal';
 import confetti from 'canvas-confetti';
 import { translations } from '../i18n';
 
 const Dashboard = () => {
-  const { transactions, budgetSettings, userName, language, currency } = useBudget();
+  const { transactions, budgetSettings, userName, language, currency, deleteTransaction } = useBudget();
   const [modalType, setModalType] = useState(null);
   const [searchQuery, setSearchQuery] = useState('');
+  const [showAllHistory, setShowAllHistory] = useState(false);
   const t = translations[language];
 
   // Calculate totals
@@ -25,7 +26,7 @@ const Dashboard = () => {
   // Calculate budget proportions based on Income
   // Needs + Wants = Total Budget for Expenses
   const maxExpensesAllowed = (totalIncome * (budgetSettings.needs + budgetSettings.wants)) / 100;
-  const expensePercentage = maxExpensesAllowed === 0 ? 0 : Math.min(100, (totalExpense / maxExpensesAllowed) * 100);
+  const expensePercentage = maxExpensesAllowed === 0 ? 0 : (Math.min(100, (totalExpense / maxExpensesAllowed) * 100) || 0);
   
   const isOverBudget = totalExpense > maxExpensesAllowed;
 
@@ -36,7 +37,8 @@ const Dashboard = () => {
     }).format(amount);
   };
 
-  const filteredTransactions = transactions.filter(tr => 
+  const sortedTransactions = [...transactions].sort((a, b) => new Date(b.date) - new Date(a.date));
+  const filteredTransactions = sortedTransactions.filter(tr => 
     tr.title.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
@@ -154,15 +156,37 @@ const Dashboard = () => {
 
             {filteredTransactions.slice(0, 10).map(t_item => (
               <div key={t_item.id} className="flex justify-between items-center mb-3 pb-3" style={{ borderBottom: '1px solid var(--border-color)' }}>
-                <div>
-                  <p className="font-bold">{t_item.title}</p>
+                <div style={{ flex: 1, minWidth: 0, paddingRight: '1rem' }}>
+                  <p className="font-bold" style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{t_item.title}</p>
                   <p className="text-sm text-secondary">{new Date(t_item.date).toLocaleDateString()}</p>
                 </div>
-                <p className={`font-bold ${t_item.type === 'income' ? 'text-income' : 'text-expense'}`}>
-                  {t_item.type === 'income' ? '+' : '-'}{formatCurrency(t_item.amount)}
-                </p>
+                <div className="flex items-center gap-3 shrink-0">
+                  <p className={`font-bold ${t_item.type === 'income' ? 'text-income' : 'text-expense'}`}>
+                    {t_item.type === 'income' ? '+' : '-'}{formatCurrency(t_item.amount)}
+                  </p>
+                  <button 
+                    onClick={() => {
+                      if(window.confirm(language === 'id' ? 'Hapus transaksi ini?' : 'Delete this transaction?')) {
+                        deleteTransaction(t_item.id);
+                      }
+                    }}
+                    style={{ background: 'transparent', border: 'none', color: 'var(--accent-expense)', cursor: 'pointer', padding: '4px' }}
+                    title={language === 'id' ? 'Hapus' : 'Delete'}
+                  >
+                    <Trash2 size={16} />
+                  </button>
+                </div>
               </div>
             ))}
+            
+            {filteredTransactions.length > 10 && (
+              <button 
+                className="btn btn-outline w-full mt-2" 
+                onClick={() => setShowAllHistory(true)}
+              >
+                {language === 'id' ? 'Lihat Semua Transaksi' : 'View All Transactions'}
+              </button>
+            )}
             {filteredTransactions.length === 0 && (
               <p className="text-sm text-center text-secondary py-4">
                 {searchQuery ? 'No matching transactions.' : 'No transactions yet.'}
@@ -177,6 +201,63 @@ const Dashboard = () => {
           type={modalType} 
           onClose={() => setModalType(null)} 
         />
+      )}
+
+      {showAllHistory && (
+        <div className="modal-overlay">
+          <div className="modal-content" style={{ maxHeight: '90vh', display: 'flex', flexDirection: 'column' }}>
+            <div className="flex justify-between items-center mb-6 shrink-0">
+              <h2 className="text-xl font-bold">{language === 'id' ? 'Semua Riwayat Transaksi' : 'All Transaction History'}</h2>
+              <button onClick={() => setShowAllHistory(false)} className="btn-icon" style={{ backgroundColor: 'transparent', border: 'none', color: 'var(--text-secondary)' }}>
+                <X size={24} />
+              </button>
+            </div>
+            
+            <div className="input-group mb-4 shrink-0" style={{ position: 'relative' }}>
+              <input 
+                type="text"
+                placeholder={t.search}
+                className="input-field"
+                style={{ paddingLeft: '2.5rem' }}
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+              />
+              <Search size={18} style={{ position: 'absolute', left: '1rem', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-secondary)' }} />
+            </div>
+
+            <div style={{ overflowY: 'auto', flex: 1, paddingRight: '0.5rem' }}>
+              {filteredTransactions.map(t_item => (
+                <div key={t_item.id} className="flex justify-between items-center mb-3 pb-3" style={{ borderBottom: '1px solid var(--border-color)' }}>
+                  <div style={{ flex: 1, minWidth: 0, paddingRight: '1rem' }}>
+                    <p className="font-bold" style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{t_item.title}</p>
+                    <p className="text-sm text-secondary">{new Date(t_item.date).toLocaleDateString()}</p>
+                  </div>
+                  <div className="flex items-center gap-3 shrink-0">
+                    <p className={`font-bold ${t_item.type === 'income' ? 'text-income' : 'text-expense'}`}>
+                      {t_item.type === 'income' ? '+' : '-'}{formatCurrency(t_item.amount)}
+                    </p>
+                    <button 
+                      onClick={() => {
+                        if(window.confirm(language === 'id' ? 'Hapus transaksi ini?' : 'Delete this transaction?')) {
+                          deleteTransaction(t_item.id);
+                        }
+                      }}
+                      style={{ background: 'transparent', border: 'none', color: 'var(--accent-expense)', cursor: 'pointer', padding: '4px' }}
+                      title={language === 'id' ? 'Hapus' : 'Delete'}
+                    >
+                      <Trash2 size={16} />
+                    </button>
+                  </div>
+                </div>
+              ))}
+              {filteredTransactions.length === 0 && (
+                <p className="text-sm text-center text-secondary py-4">
+                  {searchQuery ? 'No matching transactions.' : 'No transactions yet.'}
+                </p>
+              )}
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );

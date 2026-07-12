@@ -23,7 +23,9 @@ const Stats = () => {
     if (type === 'month') setMonthDate(`${year}-${value}`);
   };
 
-  const filteredTransactions = transactions.filter(t => {
+  const sortedTransactions = [...transactions].sort((a, b) => new Date(b.date) - new Date(a.date));
+
+  const filteredTransactions = sortedTransactions.filter(t => {
     const date = parseISO(t.date);
     if (period === 'daily') return isSameDay(date, parseISO(dailyDate));
     if (period === 'weekly') {

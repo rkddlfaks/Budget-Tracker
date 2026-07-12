@@ -151,15 +151,21 @@ const AddTransactionModal = ({ type, onClose }) => {
         <form onSubmit={handleSubmit}>
           <div className="input-group">
             <label className="input-label">{t.amount}</label>
-            <input 
-              type="text" 
-              inputMode="decimal"
-              className="input-field"
-              required
-              value={formatDisplayAmount(amount)}
-              onChange={handleAmountChange}
-              placeholder="e.g. 50.000"
-            />
+            <div style={{ position: 'relative' }}>
+              <span style={{ position: 'absolute', left: '1rem', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-secondary)', fontWeight: 'bold' }}>
+                {language === 'id' ? 'Rp' : '$'}
+              </span>
+              <input 
+                type="text" 
+                inputMode="decimal"
+                className="input-field"
+                required
+                value={formatDisplayAmount(amount)}
+                onChange={handleAmountChange}
+                placeholder="e.g. 50.000"
+                style={{ paddingLeft: '3rem' }}
+              />
+            </div>
           </div>
 
           <div className="input-group">
