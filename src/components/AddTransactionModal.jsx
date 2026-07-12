@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useBudget } from '../contexts/BudgetContext';
 import { translations } from '../i18n';
-import { Mic, X, Coffee, ShoppingBag, Zap, Car, Film, Briefcase, TrendingUp, HelpCircle, Repeat } from 'lucide-react';
+import { Mic, X, Coffee, ShoppingBag, Zap, Car, Film, Briefcase, TrendingUp, HelpCircle, Repeat, PiggyBank } from 'lucide-react';
 import { addMonths } from 'date-fns';
 
 const EXPENSE_CATEGORIES = [
@@ -10,6 +10,7 @@ const EXPENSE_CATEGORIES = [
   { id: 'Bills', icon: Zap, label: 'Bills' },
   { id: 'Transport', icon: Car, label: 'Transport' },
   { id: 'Entertainment', icon: Film, label: 'Entertainment' },
+  { id: 'Savings', icon: PiggyBank, label: 'Savings' },
   { id: 'Other', icon: HelpCircle, label: 'Other' }
 ];
 
@@ -107,10 +108,12 @@ const AddTransactionModal = ({ type, onClose }) => {
     
     const finalTitle = note ? `${selectedSmartCat} - ${note}` : selectedSmartCat;
     
-    // Auto-map Smart Category to Needs/Wants for laymen
+    // Auto-map Smart Category to Needs/Wants/Savings for laymen
     let autoCategory = 'wants';
     if (['Food', 'Bills', 'Transport'].includes(selectedSmartCat)) {
       autoCategory = 'needs';
+    } else if (selectedSmartCat === 'Savings') {
+      autoCategory = 'savings';
     }
     
     addTransaction({

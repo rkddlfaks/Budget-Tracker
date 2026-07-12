@@ -20,15 +20,19 @@ const Dashboard = () => {
   const totalExpense = transactions
     .filter(t => t.type === 'expense')
     .reduce((acc, t) => acc + Number(t.amount), 0);
+    
+  const budgetSpent = transactions
+    .filter(t => t.type === 'expense' && t.category !== 'savings')
+    .reduce((acc, t) => acc + Number(t.amount), 0);
 
   const balance = totalIncome - totalExpense;
 
   // Calculate budget proportions based on Income
   // Needs + Wants = Total Budget for Expenses
   const maxExpensesAllowed = (totalIncome * (budgetSettings.needs + budgetSettings.wants)) / 100;
-  const expensePercentage = maxExpensesAllowed === 0 ? 0 : (Math.min(100, (totalExpense / maxExpensesAllowed) * 100) || 0);
+  const expensePercentage = maxExpensesAllowed === 0 ? 0 : (Math.min(100, (budgetSpent / maxExpensesAllowed) * 100) || 0);
   
-  const isOverBudget = totalExpense > maxExpensesAllowed;
+  const isOverBudget = budgetSpent > maxExpensesAllowed;
 
   const formatCurrency = (amount) => {
     return new Intl.NumberFormat(language === 'id' ? 'id-ID' : 'en-US', { 
@@ -124,8 +128,8 @@ const Dashboard = () => {
               {isOverBudget 
                 ? t.overbudget
                 : (language === 'id' 
-                   ? `Terpakai ${formatCurrency(totalExpense)} / Batas ${formatCurrency(maxExpensesAllowed)}`
-                   : `Spent ${formatCurrency(totalExpense)} / Limit ${formatCurrency(maxExpensesAllowed)}`)}
+                   ? `Terpakai ${formatCurrency(budgetSpent)} / Batas ${formatCurrency(maxExpensesAllowed)}`
+                   : `Spent ${formatCurrency(budgetSpent)} / Limit ${formatCurrency(maxExpensesAllowed)}`)}
             </p>
             <div className="progress-container">
               <div 
