@@ -10,6 +10,7 @@ const Dashboard = () => {
   const [modalType, setModalType] = useState(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [showAllHistory, setShowAllHistory] = useState(false);
+  const [transactionToDelete, setTransactionToDelete] = useState(null);
   const t = translations[language];
 
   // Calculate totals
@@ -21,18 +22,31 @@ const Dashboard = () => {
     .filter(t => t.type === 'expense')
     .reduce((acc, t) => acc + Number(t.amount), 0);
     
-  const budgetSpent = transactions
-    .filter(t => t.type === 'expense' && t.category !== 'savings')
-    .reduce((acc, t) => acc + Number(t.amount), 0);
-
   const balance = totalIncome - totalExpense;
+    
+  // Calculate specific targets
+  const targetNeeds = (totalIncome * budgetSettings.needs) / 100;
+  const targetWants = (totalIncome * budgetSettings.wants) / 100;
+  const targetSavings = (totalIncome * budgetSettings.savings) / 100;
 
-  // Calculate budget proportions based on Income
-  // Needs + Wants = Total Budget for Expenses
-  const maxExpensesAllowed = (totalIncome * (budgetSettings.needs + budgetSettings.wants)) / 100;
-  const expensePercentage = maxExpensesAllowed === 0 ? 0 : (Math.min(100, (budgetSpent / maxExpensesAllowed) * 100) || 0);
+  // Calculate actual spending/saving
+  const actualNeeds = transactions.filter(t => t.type === 'expense' && t.category === 'needs').reduce((acc, t) => acc + Number(t.amount), 0);
+  const actualWants = transactions.filter(t => t.type === 'expense' && t.category === 'wants').reduce((acc, t) => acc + Number(t.amount), 0);
   
-  const isOverBudget = budgetSpent > maxExpensesAllowed;
+  // Actual savings now only counts manual savings (Simpan ke Tabungan)
+  // This prevents it from instantly showing as full when income is added.
+  const actualSavings = transactions.filter(t => t.type === 'expense' && t.category === 'savings').reduce((acc, t) => acc + Number(t.amount), 0);
+
+  // Percentages for progress bars
+  const pctNeeds = targetNeeds === 0 ? 0 : Math.min(100, (actualNeeds / targetNeeds) * 100);
+  const pctWants = targetWants === 0 ? 0 : Math.min(100, (actualWants / targetWants) * 100);
+  const pctSavings = targetSavings === 0 ? 0 : Math.min(100, (actualSavings / targetSavings) * 100);
+
+  const overNeeds = actualNeeds >= targetNeeds && targetNeeds > 0;
+  const overWants = actualWants >= targetWants && targetWants > 0;
+  const savingsFull = actualSavings >= targetSavings && targetSavings > 0;
+  const budgetSpent = actualNeeds + actualWants;
+  const isOverBudget = budgetSpent > (targetNeeds + targetWants);
 
   const formatCurrency = (amount) => {
     return new Intl.NumberFormat(language === 'id' ? 'id-ID' : 'en-US', { 
@@ -110,35 +124,72 @@ const Dashboard = () => {
           <div className="card mb-8">
             <div className="flex justify-between items-center mb-4">
               <h3 className="font-bold">{t.budgetStatus}</h3>
-              <button 
-                onClick={() => {
-                  if (!isOverBudget) {
-                    confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 } });
-                  } else {
-                    alert(language === 'id' ? 'Oops! Pengeluaranmu overbudget bulan ini.' : 'Oops! You are over budget this month.');
-                  }
-                }}
-                className="btn btn-outline"
-                style={{ padding: '0.25rem 0.75rem', fontSize: '0.75rem', minHeight: 'auto' }}
-              >
-                {language === 'id' ? 'Rayakan 🎉' : 'Celebrate 🎉'}
-              </button>
             </div>
-            <p className="text-sm text-secondary mb-4">
-              {isOverBudget 
-                ? t.overbudget
-                : (language === 'id' 
-                   ? `Terpakai ${formatCurrency(budgetSpent)} / Batas ${formatCurrency(maxExpensesAllowed)}`
-                   : `Spent ${formatCurrency(budgetSpent)} / Limit ${formatCurrency(maxExpensesAllowed)}`)}
-            </p>
-            <div className="progress-container">
-              <div 
-                className="progress-bar" 
-                style={{ 
-                  width: `${expensePercentage}%`,
-                  backgroundColor: isOverBudget ? 'var(--accent-expense)' : 'var(--primary-color)' 
-                }}
-              ></div>
+            <div className="flex flex-col gap-5 mt-2">
+              {/* Needs Bar */}
+              <div>
+                <div className="flex justify-between items-end mb-2">
+                  <div>
+                    <p className="font-bold text-sm">{language === 'id' ? 'Kebutuhan' : 'Needs'} <span className="text-xs font-normal text-secondary ml-1">({budgetSettings.needs}%)</span></p>
+                    <p className="text-xs text-secondary mt-1">
+                      {language === 'id' ? `Terpakai ${formatCurrency(actualNeeds)} / Target ${formatCurrency(targetNeeds)}` : `Spent ${formatCurrency(actualNeeds)} / Target ${formatCurrency(targetNeeds)}`}
+                    </p>
+                  </div>
+                  {overNeeds && <span className="text-xs font-bold text-expense">{language === 'id' ? 'Overbudget!' : 'Overbudget!'}</span>}
+                </div>
+                <div className="progress-container h-2">
+                  <div 
+                    className="progress-bar h-2" 
+                    style={{ 
+                      width: `${pctNeeds}%`,
+                      backgroundColor: overNeeds ? 'var(--accent-expense)' : 'var(--primary-color)' 
+                    }}
+                  ></div>
+                </div>
+              </div>
+
+              {/* Wants Bar */}
+              <div>
+                <div className="flex justify-between items-end mb-2">
+                  <div>
+                    <p className="font-bold text-sm">{language === 'id' ? 'Keinginan' : 'Wants'} <span className="text-xs font-normal text-secondary ml-1">({budgetSettings.wants}%)</span></p>
+                    <p className="text-xs text-secondary mt-1">
+                      {language === 'id' ? `Terpakai ${formatCurrency(actualWants)} / Target ${formatCurrency(targetWants)}` : `Spent ${formatCurrency(actualWants)} / Target ${formatCurrency(targetWants)}`}
+                    </p>
+                  </div>
+                  {overWants && <span className="text-xs font-bold text-expense">{language === 'id' ? 'Overbudget!' : 'Overbudget!'}</span>}
+                </div>
+                <div className="progress-container h-2">
+                  <div 
+                    className="progress-bar h-2" 
+                    style={{ 
+                      width: `${pctWants}%`,
+                      backgroundColor: overWants ? 'var(--accent-expense)' : '#f59e0b' 
+                    }}
+                  ></div>
+                </div>
+              </div>
+
+              {/* Savings Bar */}
+              <div>
+                <div className="flex justify-between items-end mb-2">
+                  <div>
+                    <p className="font-bold text-sm">{language === 'id' ? 'Tabungan' : 'Savings'} <span className="text-xs font-normal text-secondary ml-1">({budgetSettings.savings}%)</span></p>
+                    <p className="text-xs text-secondary mt-1">
+                      {language === 'id' ? `Terkumpul ${formatCurrency(actualSavings)} / Target ${formatCurrency(targetSavings)}` : `Saved ${formatCurrency(actualSavings)} / Target ${formatCurrency(targetSavings)}`}
+                    </p>
+                  </div>
+                </div>
+                <div className="progress-container h-2">
+                  <div 
+                    className="progress-bar h-2" 
+                    style={{ 
+                      width: `${pctSavings}%`,
+                      backgroundColor: savingsFull ? '#10b981' : 'var(--primary-color)' 
+                    }}
+                  ></div>
+                </div>
+              </div>
             </div>
           </div>
         </div>
@@ -171,11 +222,7 @@ const Dashboard = () => {
                     {t_item.type === 'income' ? '+' : '-'}{formatCurrency(t_item.amount)}
                   </p>
                   <button 
-                    onClick={() => {
-                      if(window.confirm(language === 'id' ? 'Hapus transaksi ini?' : 'Delete this transaction?')) {
-                        deleteTransaction(t_item.id);
-                      }
-                    }}
+                    onClick={() => setTransactionToDelete(t_item.id)}
                     style={{ background: 'transparent', border: 'none', color: 'var(--accent-expense)', cursor: 'pointer', padding: '4px' }}
                     title={language === 'id' ? 'Hapus' : 'Delete'}
                   >
@@ -243,11 +290,7 @@ const Dashboard = () => {
                       {t_item.type === 'income' ? '+' : '-'}{formatCurrency(t_item.amount)}
                     </p>
                     <button 
-                      onClick={() => {
-                        if(window.confirm(language === 'id' ? 'Hapus transaksi ini?' : 'Delete this transaction?')) {
-                          deleteTransaction(t_item.id);
-                        }
-                      }}
+                      onClick={() => setTransactionToDelete(t_item.id)}
                       style={{ background: 'transparent', border: 'none', color: 'var(--accent-expense)', cursor: 'pointer', padding: '4px' }}
                       title={language === 'id' ? 'Hapus' : 'Delete'}
                     >
@@ -261,6 +304,39 @@ const Dashboard = () => {
                   {searchQuery ? 'No matching transactions.' : 'No transactions yet.'}
                 </p>
               )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {transactionToDelete && (
+        <div className="modal-overlay">
+          <div className="modal-content" style={{ maxWidth: '400px', textAlign: 'center' }}>
+            <div className="mb-4 text-expense flex justify-center">
+              <Trash2 size={48} />
+            </div>
+            <h2 className="text-xl font-bold mb-2">{language === 'id' ? 'Hapus Transaksi?' : 'Delete Transaction?'}</h2>
+            <p className="text-secondary mb-6 text-sm">
+              {language === 'id' ? 'Data ini akan dihapus permanen dan tidak bisa dikembalikan.' : 'This data will be permanently deleted and cannot be recovered.'}
+            </p>
+            <div className="flex gap-3">
+              <button 
+                className="btn btn-outline" 
+                style={{ flex: 1 }}
+                onClick={() => setTransactionToDelete(null)}
+              >
+                {language === 'id' ? 'Batal' : 'Cancel'}
+              </button>
+              <button 
+                className="btn bg-expense" 
+                style={{ flex: 1, color: '#fff', border: 'none' }}
+                onClick={() => {
+                  deleteTransaction(transactionToDelete);
+                  setTransactionToDelete(null);
+                }}
+              >
+                {language === 'id' ? 'Ya, Hapus' : 'Yes, Delete'}
+              </button>
             </div>
           </div>
         </div>

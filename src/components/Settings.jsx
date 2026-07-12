@@ -45,13 +45,15 @@ const Settings = () => {
       currency,
       language
     };
-    const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(data));
+    const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
     const downloadAnchorNode = document.createElement('a');
-    downloadAnchorNode.setAttribute("href", dataStr);
-    downloadAnchorNode.setAttribute("download", "budget_tracker_backup.json");
+    downloadAnchorNode.href = url;
+    downloadAnchorNode.download = "budget_tracker_backup.json";
     document.body.appendChild(downloadAnchorNode);
     downloadAnchorNode.click();
-    downloadAnchorNode.remove();
+    document.body.removeChild(downloadAnchorNode);
+    URL.revokeObjectURL(url);
   };
 
   const handleImport = (e) => {
@@ -277,27 +279,41 @@ const Settings = () => {
               </button>
             </div>
             <p className="mb-6 text-center text-sm">
-              Are you sure you want to delete <strong>ALL</strong> your budget data? <br/>This action is permanent and cannot be undone.
+              {language === 'id' ? 'Apakah Anda yakin ingin menghapus SEMUA data?' : 'Are you sure you want to delete ALL your budget data?'} <br/>
+              <span className="text-expense font-bold">{language === 'id' ? 'Data yang dihapus tidak bisa dikembalikan!' : 'Deleted data cannot be recovered!'}</span><br/>
+              {language === 'id' ? 'Sangat disarankan untuk mem-backup data Anda terlebih dahulu sebelum menghapus.' : 'It is highly recommended to backup your data before deleting.'}
             </p>
-            <div className="flex gap-4">
+            <div className="flex flex-col gap-3">
               <button 
-                className="btn btn-outline w-full"
-                onClick={() => setShowConfirmModal(false)}
-              >
-                {t.cancel}
-              </button>
-              <button 
-                className="btn w-full bg-expense"
-                style={{ color: '#fff' }}
+                className="btn btn-primary w-full flex items-center justify-center gap-2"
                 onClick={() => {
-                  resetData();
-                  setShowConfirmModal(false);
-                  setSuccessMessage(language === 'id' ? 'Seluruh transaksi Anda telah berhasil dihapus. Siap mulai dari nol!' : 'All your transactions have been successfully cleared. You are ready to start fresh!');
-                  setShowSuccessModal(true);
+                  handleExport();
                 }}
               >
-                {t.resetAll}
+                <Download size={18} /> {language === 'id' ? 'Backup Data Sekarang' : 'Backup Data Now'}
               </button>
+              
+              <div className="flex gap-3 mt-2">
+                <button 
+                  className="btn btn-outline"
+                  style={{ flex: 1 }}
+                  onClick={() => setShowConfirmModal(false)}
+                >
+                  {t.cancel}
+                </button>
+                <button 
+                  className="btn bg-expense"
+                  style={{ flex: 1, color: '#fff', border: 'none' }}
+                  onClick={() => {
+                    resetData();
+                    setShowConfirmModal(false);
+                    setSuccessMessage(language === 'id' ? 'Seluruh transaksi Anda telah berhasil dihapus. Siap mulai dari nol!' : 'All your transactions have been successfully cleared. You are ready to start fresh!');
+                    setShowSuccessModal(true);
+                  }}
+                >
+                  {t.resetAll}
+                </button>
+              </div>
             </div>
           </div>
         </div>
