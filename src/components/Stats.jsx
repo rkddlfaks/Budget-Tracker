@@ -51,18 +51,22 @@ const Stats = () => {
   const targetWants = (totalIncome * budgetSettings.wants) / 100;
   const targetSavings = (totalIncome * budgetSettings.savings) / 100;
 
-  // Let's assume expenses are loosely categorized if we don't strictly enforce categories, 
-  // but for the chart, we'll just show Income vs Expense vs target Savings
-  const pieData = [
-    { name: 'Expenses', value: totalExpense, color: 'var(--accent-expense)' },
-    { name: 'Remaining/Savings', value: Math.max(0, totalIncome - totalExpense), color: 'var(--primary-color)' }
-  ];
+  // Calculate actual spending for needs and wants
+  const needsTotal = filteredTransactions.filter(t => t.type === 'expense' && t.category === 'needs').reduce((sum, t) => sum + Number(t.amount), 0);
+  const wantsTotal = filteredTransactions.filter(t => t.type === 'expense' && t.category === 'wants').reduce((sum, t) => sum + Number(t.amount), 0);
 
-  // Group by category for bar chart (Expenses only)
+  const pieData = [
+    { name: 'Needs', value: needsTotal, color: 'var(--accent-expense)' },
+    { name: 'Wants', value: wantsTotal, color: '#f59e0b' },
+    { name: 'Remaining/Savings', value: Math.max(0, totalIncome - totalExpense), color: 'var(--primary-color)' }
+  ].filter(d => d.value > 0);
+
+  // Group by category for bar chart (Expenses only) - extract Smart Category from title
   const expensesByCategory = filteredTransactions
     .filter(t => t.type === 'expense')
     .reduce((acc, t) => {
-      acc[t.title] = (acc[t.title] || 0) + Number(t.amount);
+      const baseCategory = t.title.split(' - ')[0];
+      acc[baseCategory] = (acc[baseCategory] || 0) + Number(t.amount);
       return acc;
     }, {});
     

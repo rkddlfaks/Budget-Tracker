@@ -123,7 +123,9 @@ const Dashboard = () => {
             <p className="text-sm text-secondary mb-4">
               {isOverBudget 
                 ? t.overbudget
-                : `${t.spent} ${expensePercentage.toFixed(1)}% ${t.allowed}`}
+                : (language === 'id' 
+                   ? `Terpakai ${formatCurrency(totalExpense)} / Batas ${formatCurrency(maxExpensesAllowed)}`
+                   : `Spent ${formatCurrency(totalExpense)} / Limit ${formatCurrency(maxExpensesAllowed)}`)}
             </p>
             <div className="progress-container">
               <div 

@@ -107,11 +107,17 @@ const AddTransactionModal = ({ type, onClose }) => {
     
     const finalTitle = note ? `${selectedSmartCat} - ${note}` : selectedSmartCat;
     
+    // Auto-map Smart Category to Needs/Wants for laymen
+    let autoCategory = 'wants';
+    if (['Food', 'Bills', 'Transport'].includes(selectedSmartCat)) {
+      autoCategory = 'needs';
+    }
+    
     addTransaction({
       type,
       amount: Number(amount),
       title: finalTitle,
-      category: type === 'expense' ? category : 'income',
+      category: type === 'expense' ? autoCategory : 'income',
       date,
       isRecurring,
       nextRecurringDate: isRecurring ? addMonths(new Date(date), 1).toISOString() : null
@@ -196,19 +202,7 @@ const AddTransactionModal = ({ type, onClose }) => {
             />
           </div>
 
-          {type === 'expense' && (
-            <div className="input-group">
-              <label className="input-label">{t.category}</label>
-              <select 
-                className="input-field"
-                value={category}
-                onChange={(e) => setCategory(e.target.value)}
-              >
-                <option value="needs">{t.needs}</option>
-                <option value="wants">{t.wants}</option>
-              </select>
-            </div>
-          )}
+
 
           <div className="input-group">
             <label className="input-label">{t.date}</label>
