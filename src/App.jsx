@@ -8,7 +8,7 @@ import { useBudget } from './contexts/BudgetContext';
 
 function App() {
   const [activeTab, setActiveTab] = useState('dashboard');
-  const { hasOnboarded } = useBudget();
+  const { hasOnboarded, toast } = useBudget();
 
   if (!hasOnboarded) {
     return <Onboarding />;
@@ -43,6 +43,28 @@ function App() {
           <span>Settings</span>
         </button>
       </nav>
+
+      {/* Toast Notification */}
+      {toast && (
+        <div className="toast-notification" style={{
+          position: 'fixed',
+          bottom: '80px',
+          left: '50%',
+          transform: 'translateX(-50%)',
+          backgroundColor: toast.type === 'success' ? '#10b981' : 'var(--accent-expense)',
+          color: 'white',
+          padding: '12px 24px',
+          borderRadius: '50px',
+          boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
+          zIndex: 9999,
+          fontWeight: 'bold',
+          fontSize: '0.9rem',
+          animation: 'slideUp 0.3s ease-out forwards',
+          whiteSpace: 'nowrap'
+        }}>
+          {toast.message}
+        </div>
+      )}
     </div>
   );
 }

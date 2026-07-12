@@ -20,18 +20,31 @@ const INCOME_CATEGORIES = [
   { id: 'Other', icon: HelpCircle, label: 'Other' }
 ];
 
-const AddTransactionModal = ({ type, onClose }) => {
-  const { addTransaction, language } = useBudget();
+const AddTransactionModal = ({ type, onClose, transactionToEdit }) => {
+  const { addTransaction, editTransaction, showToast, language } = useBudget();
   const t = translations[language];
-  const [amount, setAmount] = useState('');
   
   const categoriesList = type === 'expense' ? EXPENSE_CATEGORIES : INCOME_CATEGORIES;
-  const [selectedSmartCat, setSelectedSmartCat] = useState(categoriesList[0].id);
-  const [note, setNote] = useState('');
   
-  const [category, setCategory] = useState('needs');
-  const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
-  const [isRecurring, setIsRecurring] = useState(false);
+  // Initialize state based on transactionToEdit if it exists
+  const [amount, setAmount] = useState(transactionToEdit ? transactionToEdit.amount.toString() : '');
+  
+  // Extract category id and note from title "Category - Note" or just "Category"
+  const initCatAndNote = () => {
+    if (!transactionToEdit) return { cat: categoriesList[0].id, not: '' };
+    const parts = transactionToEdit.title.split(' - ');
+    if (parts.length > 1) {
+      return { cat: parts[0], not: parts.slice(1).join(' - ') };
+    }
+    return { cat: transactionToEdit.title, not: '' };
+  };
+  
+  const { cat: initCat, not: initNote } = initCatAndNote();
+  const [selectedSmartCat, setSelectedSmartCat] = useState(initCat);
+  const [note, setNote] = useState(initNote);
+  
+  const [date, setDate] = useState(transactionToEdit ? new Date(transactionToEdit.date).toISOString().split('T')[0] : new Date().toISOString().split('T')[0]);
+  const [isRecurring, setIsRecurring] = useState(transactionToEdit ? transactionToEdit.isRecurring : false);
   const [isRecording, setIsRecording] = useState(false);
   const [recognition, setRecognition] = useState(null);
 
@@ -116,15 +129,26 @@ const AddTransactionModal = ({ type, onClose }) => {
       autoCategory = 'savings';
     }
     
-    addTransaction({
+    const txData = {
       type,
       amount: Number(amount),
       title: finalTitle,
       category: type === 'expense' ? autoCategory : 'income',
-      date,
+      date: new Date(date).toISOString(), // Ensure standard date format
       isRecurring,
-      nextRecurringDate: isRecurring ? addMonths(new Date(date), 1).toISOString() : null
-    });
+      nextRecurringDate: isRecurring && !transactionToEdit?.nextRecurringDate 
+        ? addMonths(new Date(date), 1).toISOString() 
+        : (transactionToEdit?.nextRecurringDate || null)
+    };
+
+    if (transactionToEdit) {
+      editTransaction(transactionToEdit.id, txData);
+      showToast(language === 'id' ? 'Transaksi berhasil diperbarui! ✅' : 'Transaction updated! ✅');
+    } else {
+      addTransaction(txData);
+      showToast(language === 'id' ? `Berhasil mencatat ${finalTitle} - ${formatDisplayAmount(amount)} ✅` : `Saved ${finalTitle} - ${formatDisplayAmount(amount)} ✅`);
+    }
+    
     onClose();
   };
 
@@ -133,7 +157,9 @@ const AddTransactionModal = ({ type, onClose }) => {
       <div className="modal-content">
         <div className="flex justify-between items-center mb-6">
           <h2 className="text-xl font-bold">
-            {type === 'income' ? t.addIncome : t.addExpense}
+            {transactionToEdit 
+              ? (language === 'id' ? 'Edit Transaksi' : 'Edit Transaction')
+              : (type === 'income' ? t.addIncome : t.addExpense)}
           </h2>
           <button onClick={onClose} className="btn-icon" style={{ backgroundColor: 'transparent', border: 'none', color: 'var(--text-secondary)' }}>
             <X size={24} />
@@ -231,8 +257,8 @@ const AddTransactionModal = ({ type, onClose }) => {
             </label>
           </div>
 
-          <button type="submit" className="btn btn-primary w-full">
-            {t.save}
+          <button type="submit" className="btn btn-primary w-full flex justify-center items-center gap-2">
+            {transactionToEdit ? (language === 'id' ? 'Simpan Perubahan' : 'Save Changes') : t.save}
           </button>
         </form>
       </div>

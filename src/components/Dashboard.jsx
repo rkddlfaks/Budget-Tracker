@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useBudget } from '../contexts/BudgetContext';
-import { PlusCircle, MinusCircle, Search, Trash2, X } from 'lucide-react';
+import { PlusCircle, MinusCircle, Search, Trash2, X, Edit2, Inbox } from 'lucide-react';
 import AddTransactionModal from './AddTransactionModal';
 import confetti from 'canvas-confetti';
 import { translations } from '../i18n';
@@ -11,6 +11,8 @@ const Dashboard = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [showAllHistory, setShowAllHistory] = useState(false);
   const [transactionToDelete, setTransactionToDelete] = useState(null);
+  const [editingItem, setEditingItem] = useState(null);
+  const [timeFilter, setTimeFilter] = useState('month');
   const t = translations[language];
 
   // Calculate totals
@@ -56,9 +58,29 @@ const Dashboard = () => {
   };
 
   const sortedTransactions = [...transactions].sort((a, b) => new Date(b.date) - new Date(a.date));
-  const filteredTransactions = sortedTransactions.filter(tr => 
-    tr.title.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  const filteredTransactions = sortedTransactions.filter(tr => {
+    // 1. Search text filter
+    if (searchQuery && !tr.title.toLowerCase().includes(searchQuery.toLowerCase())) return false;
+    
+    // 2. Time filter
+    if (timeFilter === 'all') return true;
+    
+    const txDate = new Date(tr.date);
+    const now = new Date();
+    
+    if (timeFilter === 'today') {
+      return txDate.getDate() === now.getDate() && 
+             txDate.getMonth() === now.getMonth() && 
+             txDate.getFullYear() === now.getFullYear();
+    }
+    
+    if (timeFilter === 'month') {
+      return txDate.getMonth() === now.getMonth() && 
+             txDate.getFullYear() === now.getFullYear();
+    }
+    
+    return true;
+  });
 
   return (
     <div className="pb-8">
@@ -211,6 +233,30 @@ const Dashboard = () => {
               <Search size={18} style={{ position: 'absolute', left: '1rem', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-secondary)' }} />
             </div>
 
+            <div className="flex gap-2 mb-4">
+              <button 
+                className={`btn ${timeFilter === 'today' ? 'bg-primary-color text-white' : 'btn-outline'}`}
+                style={{ flex: 1, padding: '0.25rem 0.5rem', fontSize: '0.8rem', minHeight: 'auto', border: timeFilter === 'today' ? 'none' : '' }}
+                onClick={() => setTimeFilter('today')}
+              >
+                {language === 'id' ? 'Hari Ini' : 'Today'}
+              </button>
+              <button 
+                className={`btn ${timeFilter === 'month' ? 'bg-primary-color text-white' : 'btn-outline'}`}
+                style={{ flex: 1, padding: '0.25rem 0.5rem', fontSize: '0.8rem', minHeight: 'auto', border: timeFilter === 'month' ? 'none' : '' }}
+                onClick={() => setTimeFilter('month')}
+              >
+                {language === 'id' ? 'Bulan Ini' : 'This Month'}
+              </button>
+              <button 
+                className={`btn ${timeFilter === 'all' ? 'bg-primary-color text-white' : 'btn-outline'}`}
+                style={{ flex: 1, padding: '0.25rem 0.5rem', fontSize: '0.8rem', minHeight: 'auto', border: timeFilter === 'all' ? 'none' : '' }}
+                onClick={() => setTimeFilter('all')}
+              >
+                {language === 'id' ? 'Semua' : 'All'}
+              </button>
+            </div>
+
             {filteredTransactions.slice(0, 10).map(t_item => (
               <div key={t_item.id} className="flex justify-between items-center mb-3 pb-3" style={{ borderBottom: '1px solid var(--border-color)' }}>
                 <div style={{ flex: 1, minWidth: 0, paddingRight: '1rem' }}>
@@ -221,6 +267,13 @@ const Dashboard = () => {
                   <p className={`font-bold ${t_item.type === 'income' ? 'text-income' : 'text-expense'}`}>
                     {t_item.type === 'income' ? '+' : '-'}{formatCurrency(t_item.amount)}
                   </p>
+                  <button 
+                    onClick={() => setEditingItem(t_item)}
+                    style={{ background: 'transparent', border: 'none', color: 'var(--text-secondary)', cursor: 'pointer', padding: '4px' }}
+                    title={language === 'id' ? 'Edit' : 'Edit'}
+                  >
+                    <Edit2 size={16} />
+                  </button>
                   <button 
                     onClick={() => setTransactionToDelete(t_item.id)}
                     style={{ background: 'transparent', border: 'none', color: 'var(--accent-expense)', cursor: 'pointer', padding: '4px' }}
@@ -241,18 +294,29 @@ const Dashboard = () => {
               </button>
             )}
             {filteredTransactions.length === 0 && (
-              <p className="text-sm text-center text-secondary py-4">
-                {searchQuery ? 'No matching transactions.' : 'No transactions yet.'}
-              </p>
+              <div className="flex flex-col items-center justify-center py-8 text-secondary text-center">
+                <div className="mb-3 opacity-50" style={{ color: 'var(--primary-color)' }}>
+                  <Inbox size={48} />
+                </div>
+                <p className="text-sm">
+                  {searchQuery || timeFilter !== 'all' 
+                    ? (language === 'id' ? 'Tidak ada transaksi yang cocok.' : 'No matching transactions.')
+                    : (language === 'id' ? 'Dompetmu masih bersih! Yuk mulai catat pemasukan pertamamu.' : 'Your wallet is clean! Start logging your first income.')}
+                </p>
+              </div>
             )}
           </div>
         </div>
       </div>
 
-      {modalType && (
+      {(modalType || editingItem) && (
         <AddTransactionModal 
-          type={modalType} 
-          onClose={() => setModalType(null)} 
+          type={editingItem ? editingItem.type : modalType} 
+          transactionToEdit={editingItem}
+          onClose={() => {
+            setModalType(null);
+            setEditingItem(null);
+          }} 
         />
       )}
 
@@ -290,6 +354,13 @@ const Dashboard = () => {
                       {t_item.type === 'income' ? '+' : '-'}{formatCurrency(t_item.amount)}
                     </p>
                     <button 
+                      onClick={() => setEditingItem(t_item)}
+                      style={{ background: 'transparent', border: 'none', color: 'var(--text-secondary)', cursor: 'pointer', padding: '4px' }}
+                      title={language === 'id' ? 'Edit' : 'Edit'}
+                    >
+                      <Edit2 size={16} />
+                    </button>
+                    <button 
                       onClick={() => setTransactionToDelete(t_item.id)}
                       style={{ background: 'transparent', border: 'none', color: 'var(--accent-expense)', cursor: 'pointer', padding: '4px' }}
                       title={language === 'id' ? 'Hapus' : 'Delete'}
@@ -300,9 +371,16 @@ const Dashboard = () => {
                 </div>
               ))}
               {filteredTransactions.length === 0 && (
-                <p className="text-sm text-center text-secondary py-4">
-                  {searchQuery ? 'No matching transactions.' : 'No transactions yet.'}
-                </p>
+                <div className="flex flex-col items-center justify-center py-8 text-secondary text-center">
+                  <div className="mb-3 opacity-50" style={{ color: 'var(--primary-color)' }}>
+                    <Inbox size={48} />
+                  </div>
+                  <p className="text-sm">
+                    {searchQuery || timeFilter !== 'all' 
+                      ? (language === 'id' ? 'Tidak ada transaksi yang cocok.' : 'No matching transactions.')
+                      : (language === 'id' ? 'Belum ada transaksi.' : 'No transactions yet.')}
+                  </p>
+                </div>
               )}
             </div>
           </div>

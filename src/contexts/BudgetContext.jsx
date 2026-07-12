@@ -31,6 +31,16 @@ export const BudgetProvider = ({ children }) => {
     return localStorage.getItem('budget_currency') || 'IDR';
   });
 
+  const [toast, setToast] = useState(null);
+
+  const showToast = (message, type = 'success') => {
+    const id = Date.now();
+    setToast({ id, message, type });
+    setTimeout(() => {
+      setToast(current => current?.id === id ? null : current);
+    }, 3000);
+  };
+
   useEffect(() => {
     localStorage.setItem('transactions', JSON.stringify(transactions));
   }, [transactions]);
@@ -91,7 +101,11 @@ export const BudgetProvider = ({ children }) => {
   }, []); // Run only once on mount
 
   const addTransaction = (transaction) => {
-    setTransactions(prev => [{ ...transaction, id: uuidv4(), date: new Date().toISOString() }, ...prev]);
+    setTransactions(prev => [{ ...transaction, id: uuidv4(), date: transaction.date || new Date().toISOString() }, ...prev]);
+  };
+
+  const editTransaction = (id, updatedTransaction) => {
+    setTransactions(prev => prev.map(t => t.id === id ? { ...t, ...updatedTransaction } : t));
   };
 
   const deleteTransaction = (id) => {
@@ -123,8 +137,11 @@ export const BudgetProvider = ({ children }) => {
       setCurrency,
       addTransaction,
       deleteTransaction,
+      editTransaction,
       resetData,
-      updateBudgetSettings
+      updateBudgetSettings,
+      toast,
+      showToast
     }}>
       {children}
     </BudgetContext.Provider>
